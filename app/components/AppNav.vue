@@ -1,17 +1,18 @@
+<script setup lang="ts"></script>
 <template>
   <nav class="navi">
     <ul class="navi__list">
-      <li><NuxtLink to="/about">About</NuxtLink></li>
+      <li><NuxtLink to="/">Home</NuxtLink></li>
       <li><NuxtLink to="/blogs">Blogs</NuxtLink></li>
       <li><NuxtLink to="/videos">Videos</NuxtLink></li>
+      <li><NuxtLink to="/about">About</NuxtLink></li>
     </ul>
   </nav>
 </template>
 
 <style scoped>
 .navi {
-  background: #333;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0;
 }
 
 .navi__list {
@@ -29,10 +30,10 @@ a {
 }
 
 a:hover {
-  color: #ffcc00;
+  color: var(--color-primary);
 }
 
 a.router-link-exact-active {
-  border-bottom: 2px solid #ffcc00;
+  border-bottom: 2px solid var(--color-primary);
 }
 </style>
