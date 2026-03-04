@@ -17,5 +17,10 @@ header {
   flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
+
+  align-items: center;
+  position: fixed;
+  top: 0;
+  width: calc(100% - 2 * 1rem);
 }
 </style>

@@ -3,9 +3,8 @@
   <nav class="navi">
     <ul class="navi__list">
       <li><NuxtLink to="/">Home</NuxtLink></li>
-      <li><NuxtLink to="/blogs">Blogs</NuxtLink></li>
+      <li><NuxtLink to="/news">News</NuxtLink></li>
       <li><NuxtLink to="/videos">Videos</NuxtLink></li>
-      <li><NuxtLink to="/about">About</NuxtLink></li>
     </ul>
   </nav>
 </template>
