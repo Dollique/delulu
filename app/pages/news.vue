@@ -1,16 +1,16 @@
 <template>
-  <h1>News</h1>
+  <h1>News from {{ apiSource }}</h1>
   <p>News are not yet filtered to only positive News... API is too expensive :(</p>
 
   <!-- 2️⃣ Bind with v-model and add submit -->
   <form class="happyNews__form" @submit.prevent="handleSearch">
     <label for="searchquery">Search</label>
     <input
-      type="text"
       id="searchquery"
+      v-model="searchQuery"
+      type="text"
       name="searchquery"
       placeholder="anime, games..."
-      v-model="searchQuery"
     />
 
     <!-- Optional: a submit button for clarity -->
@@ -40,7 +40,7 @@
 import { ref, onMounted } from 'vue'
 import { useNews } from '~/composables/useNews'
 
-const { news, error, fetchNews } = useNews()
+const { news, error, fetchNews, apiSource } = useNews()
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games'] // some default topics
 
