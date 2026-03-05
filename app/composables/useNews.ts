@@ -1,22 +1,23 @@
 // app/composables/useNews.ts
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 /** Minimal shape of a news article that we care about. */
 export interface NewsItem {
-  /** Headline displayed in the UI. */
   title: string
-  /** URL that points to the full article. */
   link: string
-  /** Short excerpt shown underneath the headline. */
   description: string
-  /** Image that accompanies the article (may be null/undefined). */
   image_url?: string | null
+  source_name?: string | null
+  pubDate?: string | null
 }
 
 const apiList = [
   {
     api_source: 'NewsData.io',
+    api_source_key: 'newsdata',
     api_url: 'https://newsdata.io/api/1/latest',
+    proxy_url: '/api/news', // optional proxy
     api_key: import.meta.env.VITE_API_KEY_NEWSDATA,
     authorization_query_parameter: 'apikey',
     query_parameters: {
@@ -27,8 +28,9 @@ const apiList = [
   },
   {
     api_source: 'SerpAPI',
+    api_source_key: 'serp_api',
     api_url: 'https://serpapi.com/search',
-    proxy_url: '/api/news', // proxy through my own backend request to avoid CORS issues
+    proxy_url: '/api/news', // SerpAPI doesn't allow CORS, so proxy is mandatory
     api_key: import.meta.env.VITE_API_KEY_SERP,
     authorization_query_parameter: 'api_key',
     query_parameters: {
@@ -37,6 +39,7 @@ const apiList = [
   },
   {
     api_source: 'CurrentsAPI',
+    api_source_key: 'currents_api',
     api_url: 'https://api.currentsapi.services/v1/latest-news',
     api_key: import.meta.env.VITE_API_KEY_CURRENTS,
     authorization_header: 'Authorization'
@@ -44,13 +47,15 @@ const apiList = [
 ]
 
 /** Composable that fetches news from one or more sources. */
-export function useNews() {
+export function useNews(apiListIndex: number | null = null) {
   const news = ref<NewsItem[]>([])
   const loading = ref(false)
   const error = ref<unknown | null>(null)
   const apiSource = ref<string>('')
+  const router = useRouter()
 
-  let apiCount = 0
+  let apiCount =
+    apiListIndex !== null && apiListIndex >= 0 && apiListIndex < apiList.length ? apiListIndex : 0
 
   async function fetchNews(searchquery = '') {
     loading.value = true
@@ -64,33 +69,31 @@ export function useNews() {
 
       const params = buildQueryParams(apiConfig, searchquery)
 
-      // API Headers
       const headers: Record<string, string> = {}
 
       if (apiConfig.authorization_header && apiConfig.api_key) {
         headers[apiConfig.authorization_header] = apiConfig.api_key
       }
 
-      /** Fetch the payload from the NewsData.io API. */
       const fullURL = `${apiURL}?${params.toString()}`
       const response = await fetch(fullURL, { headers })
 
       if (!response.ok) {
-        // throw an Error to trigger the fallback logic
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
       const payload = await response.json()
-
-      // Map the API-specific payload to our standard NewsItem[] format
       news.value = getMapping(payload, apiConfig.api_source)
+      // Update the route to the current apiCount
+      router.push(`/news/${apiCount}`)
     } catch (e) {
       console.warn('api did not work', apiList[apiCount])
 
-      // check if there are more api's we haven't tried
       if (apiList[apiCount + 1]) {
         apiCount++
         console.warn('switching to:', apiList[apiCount])
+        // Update the route to the new apiCount before retrying
+        router.push(`/news/${apiCount}`)
         await fetchNews(searchquery)
       } else {
         console.warn("no more api's available")
@@ -107,15 +110,18 @@ export function useNews() {
 
     if (apiConfig.proxy_url) {
       params.set('target_url', apiConfig.api_url)
+      params.set('api_source_key', apiConfig.api_source_key)
     }
 
-    // expose the api key directly as query parameter
     if (apiConfig.authorization_query_parameter) {
-      params.set(apiConfig.authorization_query_parameter, apiConfig.api_key ?? '')
+      if (!apiConfig.proxy_url) {
+        params.set(apiConfig.authorization_query_parameter, apiConfig.api_key ?? '')
+      } else {
+        params.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
+      }
     }
 
     if (apiConfig.query_parameters) {
-      // loop  through the query_parameters and add them to the params
       for (const [key, value] of Object.entries(apiConfig.query_parameters)) {
         params.set(key, value)
       }
@@ -130,15 +136,15 @@ export function useNews() {
 
   function getMapping(payload: any, apiSource: string): NewsItem[] {
     if (apiSource === 'SerpAPI') {
-      // Convert SerpAPI payload (google_news_light) to our NewsItem[]
-      return (payload.organic_results ?? []).map((item: any) => ({
+      return (payload.news_results ?? []).map((item: any) => ({
         title: item.title,
         link: item.link,
         description: item.snippet,
-        image_url: item.thumbnail?.image_url ?? null
+        image_url: item.thumbnail ?? null,
+        source_name: item.source ?? null,
+        pubDate: item.date ?? null
       })) as NewsItem[]
     } else {
-      // Original mapping
       return (payload.results ?? []) as NewsItem[]
     }
   }

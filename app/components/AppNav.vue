@@ -3,7 +3,17 @@
   <nav class="navi">
     <ul class="navi__list">
       <li><NuxtLink to="/">Home</NuxtLink></li>
-      <li><NuxtLink to="/news">News</NuxtLink></li>
+      <li>
+        <NuxtLink
+          to="/news"
+          active-class="router-link-active"
+          :class="{
+            'router-link-active': $route.path.startsWith('/news')
+          }"
+        >
+          News
+        </NuxtLink>
+      </li>
       <li><NuxtLink to="/videos">Videos</NuxtLink></li>
     </ul>
   </nav>
@@ -32,7 +42,8 @@ a:hover {
   color: var(--color-primary);
 }
 
-a.router-link-exact-active {
+/* Use .router-link-active for all active states */
+a.router-link-active {
   border-bottom: 2px solid var(--color-primary);
 }
 </style>

@@ -1,8 +1,15 @@
 <template>
   <h1>News from {{ apiSource }}</h1>
+  <small
+    ><a
+      class="happyNews__switcher"
+      href="#"
+      @click.prevent="router.push(`/news/${apiListIndex + 1}`)"
+      >Next News Source</a
+    ></small
+  >
   <p>News are not yet filtered to only positive News... API is too expensive :(</p>
 
-  <!-- 2️⃣ Bind with v-model and add submit -->
   <form class="happyNews__form" @submit.prevent="handleSearch">
     <label for="searchquery">Search</label>
     <input
@@ -12,8 +19,6 @@
       name="searchquery"
       placeholder="anime, games..."
     />
-
-    <!-- Optional: a submit button for clarity -->
     <button type="submit" class="happyNews__search-btn">Search</button>
   </form>
 
@@ -21,6 +26,9 @@
     <div v-for="item in news" :key="item.id" class="happyNews__card">
       <img :src="item.image_url" class="happyNews__image" />
       <div class="happyNews__content">
+        <small>
+          {{ formatPubDate(item.pubDate) }}
+        </small>
         <h2>{{ item.title }}</h2>
         <p>{{ truncate(item.description) }}</p>
         <a
@@ -38,17 +46,23 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useNews } from '~/composables/useNews'
 
-const { news, error, fetchNews, apiSource } = useNews()
+const route = useRoute()
+const router = useRouter()
 
-const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games'] // some default topics
+// get index for url -> news/0/, news/1/
+const apiListIndex = Number(route.params.id) || 0
 
-const searchQuery = ref<string>(returnRandomItem(defaultSearchTopics)) // sets random topic as default
+const id = ref<number>(Number(route.params.id) || 0)
+const { news, error, fetchNews, apiSource } = useNews(id.value)
+
+const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']
+const searchQuery = ref<string>(returnRandomItem(defaultSearchTopics))
 
 onMounted(() => {
   if (searchQuery.value === '') searchQuery.value = returnRandomItem(defaultSearchTopics)
-
   fetchNews(searchQuery.value)
 })
 
@@ -58,7 +72,6 @@ const handleSearch = () => {
 
 function returnRandomItem(searchArray: Array<string>): string {
   if (!searchArray.length) return ''
-  // returns random entry of an array
   const randomIndex = Math.floor(Math.random() * searchArray.length)
   return searchArray[randomIndex]
 }
@@ -67,11 +80,31 @@ function truncate(text: string | null | undefined): string {
   if (!text) return ''
   return text.length > 200 ? text.slice(0, 200) + '...' : text
 }
+
+function formatPubDate(pubDate: string | null | undefined): string {
+  if (!pubDate) return ''
+  const date = new Date(pubDate)
+  if (isNaN(date.getTime())) {
+    return pubDate
+  }
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
 </script>
 
 <style>
 h2 {
   font-size: 1rem;
+}
+
+.happyNews__switcher {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  font-size: 0.9rem;
 }
 
 .happyNews__form {
