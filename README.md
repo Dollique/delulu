@@ -3,6 +3,7 @@
 <div align="center">
   <strong><em>The sunny side of the internet.</em></strong>
 </div>
+<br>
 
 The idea behind Delulu is to create a news platform that focuses on positivity and good news.
 
