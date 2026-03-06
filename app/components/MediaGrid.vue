@@ -6,8 +6,6 @@
 </template>
 
 <script lang="ts" setup>
-import MediaCard from './MediaCard.vue'
-
 defineProps({
   items: Array,
   error: String,

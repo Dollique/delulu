@@ -5,20 +5,31 @@
       <small>{{ formatPubDate(item.pubDate) }}</small>
       <h2>{{ item.title }}</h2>
       <p>{{ truncate(item.description) }}</p>
-      <a
+      <AppButton
+        v-if="props.mediaType !== 'Videos'"
+        tag="a"
+        class="media-card__button"
         :href="item.link"
         target="_blank"
         :title="`Link to ${item.source_name}`"
-        class="media-card__link"
       >
         Read More
-      </a>
+      </AppButton>
+      <AppButton
+        v-else
+        tag="NuxtLink"
+        class="media-card__button"
+        :to="{ path: '/focus/video/', query: { video_link: item.link } }"
+        :title="`Watch ${item.title}`"
+      >
+        Watch Video
+      </AppButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-defineProps({
+const props = defineProps({
   item: Object,
   mediaType: String
 })
@@ -66,20 +77,7 @@ h2 {
   padding: 1rem;
 }
 
-.media-card__link {
+.media-card__button {
   margin-top: auto;
-  display: block;
-  padding: 0.5rem 0;
-  text-align: center;
-  background: var(--color-primary);
-  text-decoration: none;
-  border-radius: 4px;
-  border: 2px solid var(--color-primary);
-}
-
-.media-card__link:hover,
-.media-card__link:focus {
-  background: none;
-  border-color: var(--color-primary);
 }
 </style>
