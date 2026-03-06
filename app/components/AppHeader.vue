@@ -22,5 +22,6 @@ header {
   position: fixed;
   top: 0;
   width: calc(100% - 2 * 1rem);
+  z-index: 100;
 }
 </style>
