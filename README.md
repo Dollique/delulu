@@ -1,8 +1,8 @@
 # Delulu
 
-<blockquote align="center">
-  <strong>The sunny side of the internet.</strong>
-</blockquote>
+<div align="center">
+  <strong><em>The sunny side of the internet.</em></strong>
+</div>
 
 The idea behind Delulu is to create a news platform that focuses on positivity and good news.
 
