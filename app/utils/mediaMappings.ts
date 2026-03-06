@@ -16,14 +16,14 @@ export function mapNewsItems(payload: any, apiSource: string): MediaItem[] {
 }
 
 export function mapVideoItems(payload: any, apiSource: string): MediaItem[] {
-  if (apiSource === 'YouTube Data API') {
-    return (payload.items ?? []).map((item: any) => ({
-      title: item.snippet.title,
-      link: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-      description: item.snippet.description,
-      image_url: item.snippet.thumbnails?.high?.url ?? null,
-      source_name: item.snippet.channelTitle ?? null,
-      pubDate: item.snippet.publishedAt ?? null
+  if (apiSource === 'SerpAPI') {
+    return (payload.video_results ?? []).map((item: any) => ({
+      title: item.title,
+      link: item.link,
+      description: item.description,
+      image_url: item.thumbnail.static ?? null,
+      source_name: 'Youtube - ' + (item.channel.name ?? null),
+      pubDate: item.published_date ?? null
     }))
   } else {
     return payload.results ?? []

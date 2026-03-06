@@ -35,6 +35,18 @@ export default defineAppConfig({
     ],
     videos: [
       {
+        api_source: 'SerpAPI',
+        api_source_key: 'serp_api',
+        api_url: 'https://serpapi.com/search',
+        proxy_url: '/api/media',
+        api_key: process.env.VITE_API_KEY_SERP,
+        authorization_query_parameter: 'api_key',
+        query_key: 'search_query',
+        query_parameters: {
+          engine: 'youtube'
+        }
+      }
+      /*{
         api_source: 'YouTube Data API',
         api_source_key: 'youtube',
         api_url: 'https://www.googleapis.com/youtube/v3/search',
@@ -46,7 +58,7 @@ export default defineAppConfig({
           type: 'video',
           maxResults: 10
         }
-      }
+      }*/
     ]
   }
 })

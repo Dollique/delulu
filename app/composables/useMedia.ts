@@ -94,7 +94,8 @@ export function useMedia(
     }
 
     if (searchquery) {
-      params.set('q', searchquery)
+      const queryKey = apiConfig.query_key || 'q'
+      params.set(queryKey, searchquery)
     }
 
     return params
