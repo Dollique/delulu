@@ -1,4 +1,11 @@
 export default defineAppConfig({
+  filterOptions: {
+    no_ai: true,
+    keyword_blocklist: ['war', 'politics', 'damage', 'drama', 'tragedy'],
+    keyword_yeslist: ['nature', 'healing', 'achievement'],
+    adult_content: false,
+    live_video: false
+  },
   apiLists: {
     news: [
       {

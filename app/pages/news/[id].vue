@@ -3,7 +3,14 @@
     <MediaHeader :source="apiSource" mediaType="News" @nextSource="handleNextSource" />
     <p>News are not yet filtered to only positive News... API is too expensive :(</p>
     <SearchForm v-model="searchQuery" placeholder="anime, games..." @search="handleSearch" />
-    <MediaGrid :items="media" :error="error" mediaType="News" />
+    <MediaGrid :items="media" :error="error ?? undefined" mediaType="News" />
+    <AppPagination
+      :hasNextPage="hasNextPage"
+      :hasPrevPage="hasPrevPage"
+      :currentPage="currentPage"
+      @next="handleNextPage"
+      @prev="handlePrevPage"
+    />
   </div>
 </template>
 
@@ -15,9 +22,12 @@ import { useMediaNavigation } from '~/composables/useMediaNavigation'
 import MediaHeader from '~/components/MediaHeader.vue'
 import SearchForm from '~/components/SearchForm.vue'
 import MediaGrid from '~/components/MediaGrid.vue'
+import AppPagination from '~/components/AppPagination.vue'
 
 const { id, handleNextSource, returnRandomItem } = useMediaNavigation('news')
-const { media, error, fetchMedia, apiSource } = useMedia('news', id.value, mapNewsItems)
+const { media, error, fetchMedia, search, apiSource, pagination, handleNextPage, handlePrevPage } =
+  useMedia('news', id.value, mapNewsItems)
+const { hasNextPage, hasPrevPage, currentPage } = pagination
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']
 const searchQuery = useState<string>('searchQuery')
@@ -28,10 +38,10 @@ if (!searchQuery.value) {
 }
 
 onMounted(() => {
-  fetchMedia(searchQuery.value)
+  search(searchQuery.value)
 })
 
 const handleSearch = () => {
-  fetchMedia(searchQuery.value)
+  search(searchQuery.value)
 }
 </script>

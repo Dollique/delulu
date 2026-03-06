@@ -1,6 +1,14 @@
 // composables/useMedia.ts
 import { ref } from 'vue'
 import { useAppConfig } from '#imports'
+import {
+  usePagination,
+  getPaginationTokensNews,
+  getPaginationTokensVideos,
+  addPaginationParamsNews,
+  addPaginationParamsVideos
+} from './usePagination'
+import { usePaginationHistory } from './usePaginationHistory'
 
 /** Minimal shape of a media item that we care about. */
 export interface MediaItem {
@@ -24,24 +32,32 @@ export function useMedia(
   const apiSource = ref(apiList[id]?.api_source || '')
   const media = ref<MediaItem[]>([])
   const error = ref<string | null>(null)
+  const pagination = usePagination<string>() // Use string for SerpAPI tokens
+  const paginationHistory = usePaginationHistory()
+  let lastSearchQuery = ''
 
   let apiCount = id !== null && id >= 0 && id < apiList.length ? id : 0
 
-  async function fetchMedia(searchquery = '') {
+  async function fetchMedia(searchquery = '', pageToken?: string) {
     loading.value = true
     error.value = null
+    if (searchquery) {
+      lastSearchQuery = searchquery
+    }
 
     try {
       const apiConfig = apiList[apiCount]!
       const apiURL = apiConfig.proxy_url ? apiConfig.proxy_url : apiConfig.api_url
 
-      console.log(`fetching ${mediaType} from:`, apiURL)
-
-      const params = buildQueryParams(apiConfig, searchquery)
-
+      const params = buildQueryParams(apiConfig, searchquery, pageToken)
       const headers: Record<string, string> = {}
 
-      if (apiConfig.authorization_header && apiConfig.api_key) {
+      // Set authorization header if present
+      if (
+        'authorization_header' in apiConfig &&
+        apiConfig.authorization_header &&
+        apiConfig.api_key
+      ) {
         headers[apiConfig.authorization_header] = apiConfig.api_key
       }
 
@@ -54,6 +70,18 @@ export function useMedia(
 
       const payload = await response.json()
       media.value = mappingFn(payload, apiConfig.api_source)
+
+      // SerpAPI pagination: extract tokens differently for news and videos
+      let tokens: { next: string | null; prev: string | null }
+      if (mediaType === 'news') {
+        tokens = getPaginationTokensNews(payload)
+      } else {
+        tokens = getPaginationTokensVideos(payload)
+      }
+      pagination.setTokens({ next: tokens.next ?? undefined, prev: tokens.prev ?? undefined })
+      // UI state: always reflect history stack (stack.length = current page number, min 1)
+      pagination.currentPage.value = Math.max(1, paginationHistory.stack.length)
+      pagination.hasPrevPage.value = paginationHistory.stack.length > 1
     } catch (e) {
       console.warn('api did not work', apiList[apiCount])
 
@@ -71,7 +99,7 @@ export function useMedia(
     }
   }
 
-  function buildQueryParams(apiConfig: any, searchquery: string) {
+  function buildQueryParams(apiConfig: any, searchquery: string, pageToken?: string) {
     const params = new URLSearchParams()
 
     if (apiConfig.proxy_url) {
@@ -98,8 +126,53 @@ export function useMedia(
       params.set(queryKey, searchquery)
     }
 
+    // SerpAPI: add pagination token if present
+    if (pageToken) {
+      if (mediaType === 'news') {
+        addPaginationParamsNews(params, pageToken)
+      } else {
+        addPaginationParamsVideos(params, pageToken)
+      }
+    }
+
     return params
   }
 
-  return { media, loading, error, fetchMedia, apiSource, apiCount }
+  async function fetchNextPage() {
+    if (pagination.nextPageToken.value) {
+      paginationHistory.push(pagination.nextPageToken.value)
+      await fetchMedia(lastSearchQuery, pagination.nextPageToken.value)
+    }
+  }
+
+  function handleNextPage() {
+    fetchNextPage()
+  }
+
+  async function handlePrevPage() {
+    paginationHistory.pop() // Remove current page token
+    const prevToken = paginationHistory.stack[paginationHistory.stack.length - 1] // Peek previous
+    await fetchMedia(lastSearchQuery, prevToken ?? undefined)
+  }
+
+  // Call this on initial search to reset the stack
+  async function search(searchquery: string) {
+    paginationHistory.reset()
+    paginationHistory.push(null) // null = first page (no token)
+    await fetchMedia(searchquery)
+  }
+
+  return {
+    media,
+    loading,
+    error,
+    fetchMedia,
+    search,
+    apiSource,
+    apiCount,
+    pagination,
+    fetchNextPage,
+    handleNextPage,
+    handlePrevPage
+  }
 }
