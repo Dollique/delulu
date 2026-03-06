@@ -1,23 +1,23 @@
 <template>
   <div>
-    <MediaHeader :source="apiSource" mediaType="News" @nextSource="handleNextSource" />
-    <p>News are not yet filtered to only positive News... API is too expensive :(</p>
+    <MediaHeader :source="apiSource" mediaType="Videos" @nextSource="handleNextSource" />
+    <p>Videos are not yet filtered to only positive Videos... API is too expensive :(</p>
     <SearchForm v-model:query="searchQuery" placeholder="anime, games..." @search="handleSearch" />
-    <MediaGrid :items="media" :error="error" mediaType="News" />
+    <MediaGrid :items="media" :error="error" mediaType="Videos" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useMedia } from '~/composables/useMedia'
-import { mapNewsItems } from '~/utils/mediaMappings'
+import { mapVideoItems } from '~/utils/mediaMappings'
 import { useMediaNavigation } from '~/composables/useMediaNavigation'
 import MediaHeader from '~/components/MediaHeader.vue'
 import SearchForm from '~/components/SearchForm.vue'
 import MediaGrid from '~/components/MediaGrid.vue'
 
-const { id, handleNextSource, returnRandomItem } = useMediaNavigation('news')
-const { media, error, fetchMedia, apiSource } = useMedia('news', id.value, mapNewsItems)
+const { id, handleNextSource, returnRandomItem } = useMediaNavigation('videos')
+const { media, error, fetchMedia, apiSource } = useMedia('videos', id.value, mapVideoItems)
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']
 const searchQuery = ref<string>(returnRandomItem(defaultSearchTopics))

@@ -14,7 +14,15 @@
           News
         </NuxtLink>
       </li>
-      <li><NuxtLink to="/videos">Videos</NuxtLink></li>
+      <li>
+        <NuxtLink
+          to="/videos"
+          :class="{
+            'router-link-active': $route.path.startsWith('/videos')
+          }"
+          >Videos</NuxtLink
+        >
+      </li>
     </ul>
   </nav>
 </template>

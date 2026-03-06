@@ -1,14 +1,18 @@
-// Nuxt API handler for `/api/news`
+// Nuxt API handler for `/api/media`
 
 import { apiKeysBySource } from '../config/apiKeys' // adjust path if needed
 
 // Helper function to throw consistent errors
-const throwError = (statusCode, statusMessage) => {
+const throwError = (statusCode: number, statusMessage: string) => {
   throw createError({ statusCode, statusMessage })
 }
 
 // Helper function to validate required query parameters
-const validateQueryParam = (query, paramName, errorMessage) => {
+const validateQueryParam = (
+  query: Record<string, string | undefined>,
+  paramName: string,
+  errorMessage: string
+) => {
   if (!query[paramName]) {
     throwError(400, errorMessage)
   }
@@ -34,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
   const authorizationKey = query.authorization_query_parameter
 
-  // Build the full target URL, excluding `authorization_query_parameter` and other internal params
+  // Build the full target URL, excluding internal params
   const params = new URLSearchParams(
     Object.entries(query).filter(
       ([k]) => !['target_url', 'api_source_key', 'authorization_query_parameter'].includes(k)

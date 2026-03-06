@@ -9,6 +9,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 onMounted(() => {
-  router.push('/news/0')
+  router.push('/videos/0')
 })
 </script>
