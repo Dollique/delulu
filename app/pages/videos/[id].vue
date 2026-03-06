@@ -2,13 +2,13 @@
   <div>
     <MediaHeader :source="apiSource" mediaType="Videos" @nextSource="handleNextSource" />
     <p>Videos are not yet filtered to only positive Videos... API is too expensive :(</p>
-    <SearchForm v-model:query="searchQuery" placeholder="anime, games..." @search="handleSearch" />
+    <SearchForm v-model="searchQuery" placeholder="anime, games..." @search="handleSearch" />
     <MediaGrid :items="media" :error="error" mediaType="Videos" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useMedia } from '~/composables/useMedia'
 import { mapVideoItems } from '~/utils/mediaMappings'
 import { useMediaNavigation } from '~/composables/useMediaNavigation'
@@ -20,7 +20,12 @@ const { id, handleNextSource, returnRandomItem } = useMediaNavigation('videos')
 const { media, error, fetchMedia, apiSource } = useMedia('videos', id.value, mapVideoItems)
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']
-const searchQuery = ref<string>(returnRandomItem(defaultSearchTopics))
+const searchQuery = useState<string>('searchQuery')
+
+// Set a random default only if the store is empty
+if (!searchQuery.value) {
+  searchQuery.value = returnRandomItem(defaultSearchTopics)
+}
 
 onMounted(() => {
   if (searchQuery.value === '') {

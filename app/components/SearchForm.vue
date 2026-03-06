@@ -3,10 +3,11 @@
     <label for="searchquery">Search</label>
     <input
       id="searchquery"
-      v-model="query"
+      v-model="localQuery"
       type="text"
       name="searchquery"
       :placeholder="placeholder"
+      @input="updateQuery"
     />
     <button type="submit" class="search-form__search-btn">Search</button>
   </form>
@@ -14,15 +15,20 @@
 
 <script lang="ts" setup>
 const props = defineProps({
-  placeholder: String
+  placeholder: String,
+  modelValue: String
 })
 
-const query = defineModel<string>('query')
+const emit = defineEmits(['update:modelValue', 'search'])
 
-const emit = defineEmits(['search'])
+const localQuery = ref(props.modelValue || '')
+
+const updateQuery = () => {
+  emit('update:modelValue', localQuery.value)
+}
 
 const onSearch = () => {
-  emit('search', query.value)
+  emit('search')
 }
 </script>
 
