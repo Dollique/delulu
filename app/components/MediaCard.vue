@@ -20,9 +20,10 @@
       </AppButton>
       <AppButton
         v-else
-        tag="NuxtLink"
+        tag="a"
         class="media-card__button"
-        :to="{ path: '/focus/video/', query: { video_link: item.url } }"
+        :href="item.url"
+        target="_blank"
         :title="`Watch ${item.title}`"
       >
         Watch Video
@@ -31,48 +32,22 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-const props = defineProps({
-  item: Object,
-  mediaType: String
-})
+<script setup lang="ts">
+const props = defineProps<{
+  item: any
+  mediaType?: string
+}>()
 
+const { showColorGradeLabel, showScoreInLabel, hideItemsWithScoreLTE } = useUserPreferences()
 const { calculateScore, getColorGrade, getColorGradeLabel } = useMediaScore()
 
-// Calculate the score for this item
-const itemScore = computed(() => {
+// Computed properties for displaying score info
+const score = computed(() => {
   return calculateScore(props.item)
 })
 
-// Get the color for this item's score
 const scoreColor = computed(() => {
-  return getColorGrade(itemScore.value)
-})
-
-// Get the label for this item's score
-const scoreLabel = computed(() => {
-  const config = useAppConfig()
-  const showScoreInLabel = config.filterOptions.showScoreInLabel || false
-  const baseLabel = getColorGradeLabel(itemScore.value)
-
-  if (showScoreInLabel) {
-    return `${baseLabel} (${itemScore.value}%)`
-  }
-
-  return baseLabel
-})
-
-// Check if color grade label should be shown
-const showColorGradeLabel = computed(() => {
-  const config = useAppConfig()
-  return config.filterOptions.showColorGradeLabel || false
-})
-
-// Determine if card should be shown based on score threshold
-const shouldShowCard = computed(() => {
-  const config = useAppConfig()
-  const hideThreshold = config.filterOptions.hideItemsWithScoreLTE ?? 0
-  return itemScore.value > hideThreshold
+  return getColorGrade(score.value)
 })
 
 function truncate(text: string | null | undefined): string {
@@ -90,6 +65,24 @@ function formatPubDate(pubDate: string | null | undefined): string {
     day: 'numeric'
   })
 }
+
+const scoreLabel = computed(() => {
+  if (!showScoreInLabel.value) return ''
+
+  const scoreValue = score.value
+  const label = getColorGradeLabel(scoreValue)
+
+  if (showColorGradeLabel.value) {
+    return `${label} (${scoreValue}%)`
+  }
+
+  return null
+})
+
+const shouldShowCard = computed(() => {
+  const scoreValue = score.value
+  return scoreValue > hideItemsWithScoreLTE.value
+})
 </script>
 
 <style scoped>

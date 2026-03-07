@@ -1,29 +1,31 @@
 <template>
-  <section v-if="!error" class="media-grid">
-    <MediaCard v-for="item in sortedItems" :key="item.id" :item="item" :mediaType="mediaType" />
-  </section>
-  <section v-else>Not able to fetch {{ mediaType }}. {{ error ?? '' }}</section>
+  <div class="media-grid">
+    <MediaCard
+      v-for="item in sortedItems"
+      :key="item.url || item.id"
+      :item="item"
+      :media-type="mediaType"
+    />
+  </div>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed } from 'vue'
-import { useMediaScore } from '~/composables/useMediaScore'
+import { useMediaScore } from '../composables/useMediaScore'
+import { useUserPreferences } from '../composables/useUserPreferences'
 
-const props = defineProps({
-  items: Array,
-  error: String,
-  mediaType: String
-})
+const props = defineProps<{
+  items?: any[]
+  error?: string
+  mediaType?: string
+}>()
 
 const { calculateScore } = useMediaScore()
-
-// Get the configuration to check if sorting should be enabled
-const config = useAppConfig()
-const sortByMediaScore = config.filterOptions.sortByMediaScore || false
+const { sortByMediaScore } = useUserPreferences()
 
 // Computed property to sort items by score when enabled
 const sortedItems = computed(() => {
-  if (!sortByMediaScore || !props.items) return props.items
+  if (!sortByMediaScore.value || !props.items) return props.items
 
   // Create a copy of items and sort by score (descending)
   return [...props.items].sort((a, b) => {

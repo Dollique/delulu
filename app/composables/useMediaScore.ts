@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-
 export const useMediaScore = () => {
   // This function calculates a score based on keywords in the content
   const calculateScore = (item: any): number => {
@@ -55,21 +53,11 @@ export const useMediaScore = () => {
       return true
     }
 
-    // Check for plural form (simple s suffix)
-    if (keyword.endsWith('s') && content.includes(keyword.slice(0, -1))) {
-      return true
-    }
-
-    // Check for plural form (adding s suffix)
-    if (!keyword.endsWith('s') && content.includes(keyword + 's')) {
-      return true
-    }
-
     // Check for common plural forms
     const pluralForms = [
-      keyword + 'es', // -es suffix (happiness -> happiness, bus -> buses)
-      keyword.slice(0, -1) + 'ies', // -ies suffix (city -> cities)
-      keyword.slice(0, -2) + 'ies' // -y -> -ies (baby -> babies)
+      keyword + 's', // -s suffix (cat -> cats)
+      keyword + 'es', // -es suffix (box -> boxes, bus -> buses)
+      keyword.slice(0, -1) + 'ies' // -y -> -ies (baby -> babies)
     ]
 
     for (const plural of pluralForms) {
@@ -84,9 +72,9 @@ export const useMediaScore = () => {
   // This function returns the color grade based on the calculated score
   const getColorGrade = (score: number): string => {
     const config = useAppConfig()
-    const { colorGrades, colorGradeLabels } = config.filterOptions
+    const { colorGrades } = config.filterOptions
 
-    if (!colorGrades || !colorGradeLabels) return '#000000'
+    if (!colorGrades) return '#000000'
 
     // Find the appropriate color grade
     let color = '#000000' // default black
@@ -96,7 +84,7 @@ export const useMediaScore = () => {
       .map(Number)
       .sort((a, b) => a - b)
 
-    // Find the first key that is >= score
+    // Find the first key that is greater than or equal to score
     for (const key of sortedKeys) {
       if (key >= score) {
         color = colorGrades[key]
@@ -104,43 +92,28 @@ export const useMediaScore = () => {
       }
     }
 
-    // If no match found, use the last color (highest score)
-    if (color === '#000000' && sortedKeys.length > 0) {
-      color = colorGrades[sortedKeys[sortedKeys.length - 1]]
-    }
-
     return color
   }
 
-  // This function returns the label based on the calculated score
+  // This function returns the color grade label based on the calculated score
   const getColorGradeLabel = (score: number): string => {
     const config = useAppConfig()
     const { colorGradeLabels } = config.filterOptions
 
     if (!colorGradeLabels) return 'Unknown'
 
-    // Find the appropriate label
-    let label = 'Unknown'
-
-    // Sort the keys to find the closest match
+    // Sort keys in descending order to find the appropriate label
     const sortedKeys = Object.keys(colorGradeLabels)
       .map(Number)
-      .sort((a, b) => a - b)
+      .sort((a, b) => b - a)
 
-    // Find the first key that is >= score
     for (const key of sortedKeys) {
-      if (key >= score) {
-        label = colorGradeLabels[key]
-        break
+      if (key <= score) {
+        return colorGradeLabels[key]
       }
     }
 
-    // If no match found, use the last label (highest score)
-    if (label === 'Unknown' && sortedKeys.length > 0) {
-      label = colorGradeLabels[sortedKeys[sortedKeys.length - 1]]
-    }
-
-    return label
+    return 'Unknown'
   }
 
   return {

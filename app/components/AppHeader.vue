@@ -5,13 +5,29 @@
       <a href="#" class="header__filters" @click="handleClickFilters">Filters</a>
     </section>
     <AppNav />
+
+    <!-- MediaFilters component that will be shown/hidden -->
+    <MediaFilters
+      v-if="showFilters"
+      :show-filters="showFilters"
+      @close-filters="handleCloseFilters"
+    />
   </header>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import MediaFilters from './MediaFilters.vue'
+
+const showFilters = ref(false)
+
 const handleClickFilters = (e: Event) => {
   e.preventDefault()
-  // show the content from MediaFilters.vue here as a dropdown
+  showFilters.value = true
+}
+
+const handleCloseFilters = () => {
+  showFilters.value = false
 }
 </script>
 
@@ -46,5 +62,15 @@ header {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+}
+.header__filters,
+.header__filters:active .header__filters:focus {
+  color: #fff;
+  text-decoration: none;
+}
+
+.header__filters:hover {
+  background: var(--color-primary);
+  color: black;
 }
 </style>

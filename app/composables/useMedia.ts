@@ -134,7 +134,7 @@ export function useMedia(
     if (pageToken && apiConfig.pagination_query_param !== '') {
       addPaginationParams(params, pageToken, apiConfig)
     } else {
-      console.warn('No pagination query param defined for this news API, skipping token addition.')
+      console.debug('No pagination query param defined for this news API, skipping token addition.')
     }
 
     return params

@@ -58,10 +58,31 @@ export default defineAppConfig({
     },
     adult_content: false,
     live_video: false,
-    sortByMediaScore: true, // sorts by most positive score first
-    showColorGradeLabel: true, // shows the color grade label in the media card label e.g. "Positive", "Negative"
-    showScoreInLabel: true, // shows the calculated score in the media card label e.g. "Positive (75%)
-    hideItemsWithScoreLTE: 10 // items with a score less than or equal to xx will be hidden entirely (display: none)
+    sortByMediaScore: {
+      name: 'Sort by Media Score',
+      adjustable: true,
+      default: true,
+      description: 'sorts by most positive score first'
+    },
+    showColorGradeLabel: {
+      name: 'Show Color Grade Label',
+      adjustable: true,
+      default: true,
+      description: 'shows the color grade label in the media card label e.g. "Positive", "Negative"'
+    },
+    showScoreInLabel: {
+      name: 'Show Score in Label',
+      adjustable: true,
+      default: true,
+      description: 'shows the calculated score in the media card label e.g. "Positive (75%)"'
+    },
+    hideItemsWithScoreLTE: {
+      name: 'Hide Items With Score <=',
+      adjustable: true,
+      default: 10,
+      description:
+        'items with a score less than or equal to xx will be hidden entirely (display: none)'
+    }
   },
   apiLists: {
     news: [
