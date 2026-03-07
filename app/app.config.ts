@@ -1,10 +1,67 @@
 export default defineAppConfig({
   filterOptions: {
     no_ai: true,
-    keyword_blocklist: ['war', 'politics', 'damage', 'drama', 'tragedy'],
-    keyword_yeslist: ['nature', 'healing', 'achievement'],
+    keyword_scorelist: {
+      war: 0,
+      politics: 20,
+      damage: 10,
+      drama: 10,
+      tragedy: 5,
+      toxic: 0,
+      violence: 0,
+      crime: 5,
+      death: 5,
+      deadly: 10,
+      killed: 0,
+      kill: 0,
+      disaster: 10,
+      accident: 10,
+      abuse: 0,
+      corruption: 0,
+      gambling: 10,
+      scandal: 10,
+      controversy: 10,
+      extremism: 0,
+      trump: 30,
+      tornado: 30,
+      hurricane: 30,
+      flood: 30,
+      earthquake: 30,
+      storm: 30,
+      delay: 20,
+      cancel: 20,
+      cancelled: 20,
+      cancellation: 20,
+      nature: 100,
+      healing: 100,
+      achievement: 100,
+      innovation: 100,
+      discovery: 100,
+      art: 100,
+      culture: 100,
+      education: 100,
+      science: 100
+    },
+    colorGrades: {
+      0: '#ff0000', // red for 0%
+      25: '#ff7f00', // orange for 25%
+      50: '#ffff00', // yellow for 50%
+      75: '#7fff00', // light green for 75%
+      100: '#00ff00' // green for 100%
+    },
+    colorGradeLabels: {
+      0: 'Very Negative',
+      25: 'Negative',
+      50: 'Neutral',
+      75: 'Positive',
+      100: 'Very Positive'
+    },
     adult_content: false,
-    live_video: false
+    live_video: false,
+    sortByMediaScore: true, // sorts by most positive score first
+    showColorGradeLabel: true, // shows the color grade label in the media card label e.g. "Positive", "Negative"
+    showScoreInLabel: true, // shows the calculated score in the media card label e.g. "Positive (75%)
+    hideItemsWithScoreLTE: 10 // items with a score less than or equal to xx will be hidden entirely (display: none)
   },
   apiLists: {
     news: [
