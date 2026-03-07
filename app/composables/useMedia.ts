@@ -1,12 +1,11 @@
-// composables/useMedia.ts
 import { ref } from 'vue'
 import { useAppConfig } from '#imports'
 import {
   usePagination,
   getPaginationTokensNews,
   getPaginationTokensVideos,
-  addPaginationParamsNews,
-  addPaginationParamsVideos
+  addPaginationParams,
+  getPaginationTokensNewsData
 } from './usePagination'
 import { usePaginationHistory } from './usePaginationHistory'
 
@@ -71,10 +70,15 @@ export function useMedia(
       const payload = await response.json()
       media.value = mappingFn(payload, apiConfig.api_source)
 
-      // SerpAPI pagination: extract tokens differently for news and videos
+      // Determine pagination tokens based on API type
       let tokens: { next: string | null; prev: string | null }
       if (mediaType === 'news') {
-        tokens = getPaginationTokensNews(payload)
+        // Check if this is NewsData.io API
+        if (apiConfig.api_source === 'NewsData.io') {
+          tokens = getPaginationTokensNewsData(payload, apiConfig)
+        } else {
+          tokens = getPaginationTokensNews(payload)
+        }
       } else {
         tokens = getPaginationTokensVideos(payload)
       }
@@ -126,13 +130,11 @@ export function useMedia(
       params.set(queryKey, searchquery)
     }
 
-    // SerpAPI: add pagination token if present
-    if (pageToken) {
-      if (mediaType === 'news') {
-        addPaginationParamsNews(params, pageToken)
-      } else {
-        addPaginationParamsVideos(params, pageToken)
-      }
+    // Add pagination token if present
+    if (pageToken && apiConfig.pagination_query_param !== '') {
+      addPaginationParams(params, pageToken, apiConfig)
+    } else {
+      console.warn('No pagination query param defined for this news API, skipping token addition.')
     }
 
     return params

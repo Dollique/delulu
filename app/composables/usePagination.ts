@@ -1,10 +1,10 @@
-// app/composables/usePagination.ts
 import { ref } from 'vue'
 
-/**
- * Generic composable for pagination state and logic.
- * Designed to be extended for API-specific pagination mechanisms.
- */
+interface PaginationTokens<T = string | number> {
+  next?: T
+  prev?: T
+}
+
 export function usePagination<T = string | number>() {
   // Token or page number for next page
   const nextPageToken = ref<T | null>(null)
@@ -18,7 +18,7 @@ export function usePagination<T = string | number>() {
   const hasPrevPage = ref<boolean>(false)
 
   // Set tokens for SerpAPI or other APIs
-  function setTokens({ next, prev }: { next?: T; prev?: T }) {
+  function setTokens({ next, prev }: PaginationTokens<T>) {
     nextPageToken.value = next ?? null
     prevPageToken.value = prev ?? null
     hasNextPage.value = !!next
@@ -46,6 +46,10 @@ export function usePagination<T = string | number>() {
 }
 
 // --- Pagination token extraction ---
+
+/**
+ * Extract pagination tokens from SerpAPI news responses.
+ */
 export function getPaginationTokensNews(payload: any) {
   const nextUrl = payload.serpapi_pagination?.next ?? null
   let nextToken: string | null = null
@@ -56,6 +60,22 @@ export function getPaginationTokensNews(payload: any) {
   return { next: nextToken, prev: null }
 }
 
+/**
+ * Extract pagination tokens from NewsData.io news responses.
+ *
+ * NewsData.io returns a simple token like:
+ *   nextPage: 1772816400089950750
+ */
+export function getPaginationTokensNewsData(payload: any, apiConfig: any) {
+  return {
+    next: payload[apiConfig.pagination_response] ?? null,
+    prev: null
+  }
+}
+
+/**
+ * Extract pagination tokens from SerpAPI video responses.
+ */
 export function getPaginationTokensVideos(payload: any) {
   return {
     next: payload.serpapi_pagination?.next_page_token ?? null,
@@ -63,11 +83,11 @@ export function getPaginationTokensVideos(payload: any) {
   }
 }
 
-// --- Pagination param addition ---
-export function addPaginationParamsNews(params: URLSearchParams, token?: string) {
-  if (token) params.set('start', token)
-}
+// --- Pagination query param construction ---
 
-export function addPaginationParamsVideos(params: URLSearchParams, token?: string) {
-  if (token) params.set('sp', token)
+/**
+ * Add the pagination query param.
+ */
+export function addPaginationParams(params: URLSearchParams, token?: string, apiConfig?: any) {
+  if (token) params.set(apiConfig.pagination_query_param, token)
 }

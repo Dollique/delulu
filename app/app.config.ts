@@ -15,6 +15,8 @@ export default defineAppConfig({
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_NEWSDATA,
         authorization_query_parameter: 'apikey',
+        pagination_response: 'nextPage',
+        pagination_query_param: 'page',
         query_parameters: {
           language: 'en',
           category: 'entertainment,education,food,science,lifestyle',
@@ -28,6 +30,8 @@ export default defineAppConfig({
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_SERP,
         authorization_query_parameter: 'api_key',
+        pagination_response: 'serpapi_pagination',
+        pagination_query_param: 'start',
         query_parameters: {
           engine: 'google_news_light'
         }
@@ -48,6 +52,7 @@ export default defineAppConfig({
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_SERP,
         authorization_query_parameter: 'api_key',
+        pagination_query_param: 'sp',
         query_key: 'search_query',
         query_parameters: {
           engine: 'youtube'
