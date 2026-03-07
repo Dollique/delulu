@@ -34,10 +34,21 @@
 
 .navi__list {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+/* media query for mobile only */
+@media (max-width: 600px) {
+  .navi__list {
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+    font-size: 0.9rem;
+  }
 }
 
 a {

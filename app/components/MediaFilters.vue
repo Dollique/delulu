@@ -77,6 +77,10 @@
       <div class="filter-section">
         <h3>Keyword Scores</h3>
 
+        <div class="filter-warning">
+          <p>Attention: All changes are temporary and will be overwritten on the next reload</p>
+        </div>
+
         <h4 class="filter-subsection-title">Add New Keyword</h4>
         <div class="add-keyword-form">
           <input v-model="newKeyword" placeholder="New keyword" class="new-keyword-input" />
@@ -253,9 +257,7 @@ const saveAndClose = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-primary);
 }
 
 .close-button {
@@ -282,6 +284,17 @@ const saveAndClose = () => {
 .filter-section h3 {
   margin: 0 0 16px 0;
   font-size: 1.2rem;
+}
+
+.filter-warning {
+  background-color: #fff3cd;
+  border: 2px dashed var(--color-primary);
+  color: #856404;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .filter-item {
@@ -447,6 +460,7 @@ const saveAndClose = () => {
 
 .add-keyword-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 }
