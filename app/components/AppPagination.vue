@@ -36,7 +36,7 @@ const onPrev = () => {
   font-size: 1.1rem;
 }
 button {
-  background-color: #42b983;
+  background-color: var(--color-positive);
   border: none;
   border-radius: 4px;
   color: white;

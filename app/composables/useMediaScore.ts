@@ -1,4 +1,6 @@
 export const useMediaScore = () => {
+  const { keyword_scorelist } = useUserPreferences()
+
   // This function calculates a score based on keywords in the content
   const calculateScore = (item: any): number => {
     if (!item) return 100
@@ -8,9 +10,8 @@ export const useMediaScore = () => {
     const description = item.description?.toLowerCase() || ''
     const content = `${title} ${description}`.trim()
 
-    // Get the configuration from app.config.ts
-    const config = useAppConfig()
-    const keywordScorelist = config.filterOptions.keyword_scorelist || {}
+    // Use the reactive keyword_scorelist
+    const keywordScorelist = keyword_scorelist.value || {}
 
     // Initialize score at 50 (neutral)
     let score = 50

@@ -33,7 +33,7 @@ const handleCloseFilters = () => {
 
 <style scoped>
 header {
-  background: #333;
+  background: var(--color-gray);
   color: #fff;
   display: flex;
   gap: 20px;
@@ -58,7 +58,7 @@ header {
 }
 
 .header__filters {
-  background: #555;
+  background: var(--color-gray-light);
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;

@@ -76,6 +76,22 @@
 
       <div class="filter-section">
         <h3>Keyword Scores</h3>
+
+        <h4 class="filter-subsection-title">Add New Keyword</h4>
+        <div class="add-keyword-form">
+          <input v-model="newKeyword" placeholder="New keyword" class="new-keyword-input" />
+          <input
+            v-model.number="newKeywordScore"
+            type="number"
+            placeholder="Score"
+            min="-100"
+            max="200"
+            class="new-keyword-score-input"
+          />
+          <button @click="addNewKeyword" class="add-keyword-button">Add</button>
+        </div>
+
+        <h4 class="filter-subsection-title">Change Keyword Scores</h4>
         <div class="keyword-scores">
           <div
             v-for="(score, keyword) in localPreferences.keyword_scorelist"
@@ -130,6 +146,22 @@ const localPreferences = ref({
   hideItemsWithScoreLTE: hideItemsWithScoreLTE.value,
   keyword_scorelist: { ...keyword_scorelist.value }
 })
+
+const newKeyword = ref('')
+const newKeywordScore = ref(0)
+
+const addNewKeyword = () => {
+  if (!newKeyword.value.trim()) return
+  if (localPreferences.value.keyword_scorelist[newKeyword.value.trim()]) {
+    alert('Keyword already exists!')
+    return
+  }
+  const key = newKeyword.value.trim()
+  const score = newKeywordScore.value
+  localPreferences.value.keyword_scorelist[key] = score
+  newKeyword.value = ''
+  newKeywordScore.value = 0
+}
 
 watch(
   [
@@ -187,16 +219,12 @@ const resetToDefaults = () => {
 }
 
 const saveAndClose = () => {
-  console.log('Saving preferences:', localPreferences.value) // Debug log
-
   updatePreference('sortByMediaScore', localPreferences.value.sortByMediaScore)
   updatePreference('showColorGradeLabel', localPreferences.value.showColorGradeLabel)
   updatePreference('showScoreInLabel', localPreferences.value.showScoreInLabel)
   updatePreference('hideItemsWithScoreLTE', localPreferences.value.hideItemsWithScoreLTE)
   updatePreference('keyword_scorelist', { ...localPreferences.value.keyword_scorelist })
-
-  console.log('Preferences saved, closing filters.') // Debug log
-  emit('close-filters') // Ensure this is called
+  emit('close-filters')
 }
 </script>
 
@@ -214,8 +242,14 @@ const saveAndClose = () => {
   box-sizing: border-box;
 }
 
+.media-filters h1,
+.media-filters h2,
+.media-filters h3,
+.media-filters h4 {
+  color: var(--color-gray);
+}
+
 .filters-header {
-  color: #333;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -229,7 +263,7 @@ const saveAndClose = () => {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #333;
+  color: var(--color-gray);
   padding: 4px;
 }
 
@@ -247,7 +281,6 @@ const saveAndClose = () => {
 
 .filter-section h3 {
   margin: 0 0 16px 0;
-  color: #333;
   font-size: 1.2rem;
 }
 
@@ -267,7 +300,7 @@ const saveAndClose = () => {
   width: 16px;
   height: 16px;
   margin-right: 8px;
-  border: 1px solid #333;
+  border: 1px solid var(--color-gray);
   border-radius: 4px;
   position: relative;
   transition: all 0.2s;
@@ -278,8 +311,8 @@ const saveAndClose = () => {
 }
 
 .checkbox-label input[type='checkbox']:checked + .checkbox-custom {
-  background: #4caf50;
-  border-color: #4caf50;
+  background: var(--color-positive);
+  border-color: var(--color-positive);
 }
 
 .checkbox-label input[type='checkbox']:checked + .checkbox-custom::after {
@@ -296,7 +329,7 @@ const saveAndClose = () => {
 
 .label-text {
   font-weight: 500;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .description {
@@ -310,7 +343,7 @@ const saveAndClose = () => {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .range-container {
@@ -334,7 +367,7 @@ const saveAndClose = () => {
   appearance: none;
   width: 16px;
   height: 16px;
-  background: #4caf50;
+  background: var(--color-positive);
   border-radius: 50%;
   cursor: pointer;
 }
@@ -343,7 +376,7 @@ const saveAndClose = () => {
   min-width: 30px;
   text-align: center;
   font-weight: bold;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .keyword-scores {
@@ -361,7 +394,7 @@ const saveAndClose = () => {
   font-size: 0.85em;
   margin-bottom: 4px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .score-input {
@@ -369,7 +402,7 @@ const saveAndClose = () => {
   border: 1px solid #ccc;
   border-radius: 4px;
   text-align: center;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .filter-actions {
@@ -396,7 +429,7 @@ const saveAndClose = () => {
 
 .reset-button {
   background-color: #f5f5f5;
-  color: #333;
+  color: var(--color-gray);
 }
 
 .reset-button:hover {
@@ -404,11 +437,34 @@ const saveAndClose = () => {
 }
 
 .save-button {
-  background-color: #4caf50;
+  background-color: var(--color-positive);
   color: #fff;
 }
 
 .save-button:hover {
   background-color: #45a049;
+}
+
+.add-keyword-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.new-keyword-input,
+.new-keyword-score-input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.add-keyword-button {
+  padding: 6px 12px;
+  background: var(--color-positive);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
