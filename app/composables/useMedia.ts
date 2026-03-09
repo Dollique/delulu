@@ -1,3 +1,4 @@
+// app/composables/useMedia.ts
 import { ref } from 'vue'
 import { useAppConfig } from '#imports'
 import {
@@ -9,7 +10,6 @@ import {
 } from './usePagination'
 import { usePaginationHistory } from './usePaginationHistory'
 
-/** Minimal shape of a media item that we care about. */
 export interface MediaItem {
   title: string
   link: string
@@ -19,7 +19,9 @@ export interface MediaItem {
   pubDate?: string | null
 }
 
-/** Composable that fetches media from one or more sources. */
+// Set the default request method (can be changed to "GET" if needed)
+const REQUEST_METHOD = 'POST' // or 'GET'
+
 export function useMedia(
   mediaType: 'news' | 'videos',
   id: number,
@@ -31,7 +33,7 @@ export function useMedia(
   const apiSource = ref(apiList[id]?.api_source || '')
   const media = ref<MediaItem[]>([])
   const error = ref<string | null>(null)
-  const pagination = usePagination<string>() // Use string for SerpAPI tokens
+  const pagination = usePagination<string>()
   const paginationHistory = usePaginationHistory()
   let lastSearchQuery = ''
 
@@ -47,21 +49,73 @@ export function useMedia(
     try {
       const apiConfig = apiList[apiCount]!
       const apiURL = apiConfig.proxy_url ? apiConfig.proxy_url : apiConfig.api_url
+      const apiKey = getAPIKeyForRequest(apiConfig.api_source_key)
 
+      // Build query params (including all query_parameters from apiConfig)
       const params = buildQueryParams(apiConfig, searchquery, pageToken)
-      const headers: Record<string, string> = {}
 
-      // Set authorization header if present
-      if (
-        'authorization_header' in apiConfig &&
-        apiConfig.authorization_header &&
-        apiConfig.api_key
-      ) {
-        headers[apiConfig.authorization_header] = apiConfig.api_key
+      let response
+
+      if (apiConfig.proxy_url) {
+        if (REQUEST_METHOD === 'POST') {
+          // For POST proxy requests
+          const requestBody = {
+            // These are explicitly pulled from apiConfig, NOT the params object
+            target_url: apiConfig.api_url,
+            api_source_key: apiConfig.api_source_key,
+            authorization_query_parameter: apiConfig.authorization_query_parameter,
+
+            // params now ONLY contains external API fields (q, language, etc.)
+            query_params: Object.fromEntries(params.entries())
+          }
+
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+          }
+
+          response = await fetch(apiURL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestBody)
+          })
+        } else {
+          // For GET proxy requests, we do need to add the internal keys
+          // to the URL so the backend can read them via getQuery(event)
+          const proxyParams = new URLSearchParams(params) // Clone the original params
+          proxyParams.set('target_url', apiConfig.api_url)
+          proxyParams.set('api_source_key', apiConfig.api_source_key)
+          proxyParams.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
+
+          const fullURL = `${apiURL}?${proxyParams.toString()}`
+          const headers: Record<string, string> = {}
+
+          // Set authorization header if present
+          if ('authorization_header' in apiConfig && apiConfig.authorization_header && apiKey) {
+            headers[apiConfig.authorization_header] = apiKey
+          }
+
+          headers['Content-Type'] = 'application/json'
+          headers['x-api-key'] = apiKey
+
+          response = await fetch(fullURL, {
+            method: 'GET',
+            headers
+          })
+        }
+      } else {
+        // For direct API calls
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        }
+
+        if (apiConfig.authorization_header && apiKey) {
+          headers[apiConfig.authorization_header] = apiKey
+        }
+
+        const fullURL = `${apiURL}?${params.toString()}`
+        response = await fetch(fullURL, { headers })
       }
-
-      const fullURL = `${apiURL}?${params.toString()}`
-      const response = await fetch(fullURL, { headers })
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -70,31 +124,29 @@ export function useMedia(
       const payload = await response.json()
       media.value = mappingFn(payload, apiConfig.api_source)
 
-      // Determine pagination tokens based on API type
+      // Handle pagination
       let tokens: { next: string | null; prev: string | null }
       if (mediaType === 'news') {
-        // Check if this is NewsData.io API
-        if (apiConfig.api_source === 'NewsData.io') {
-          tokens = getPaginationTokensNewsData(payload, apiConfig)
-        } else {
-          tokens = getPaginationTokensNews(payload)
-        }
+        tokens =
+          apiConfig.api_source === 'NewsData.io'
+            ? getPaginationTokensNewsData(payload, apiConfig)
+            : getPaginationTokensNews(payload)
       } else {
         tokens = getPaginationTokensVideos(payload)
       }
+
       pagination.setTokens({ next: tokens.next ?? undefined, prev: tokens.prev ?? undefined })
-      // UI state: always reflect history stack (stack.length = current page number, min 1)
       pagination.currentPage.value = Math.max(1, paginationHistory.stack.length)
       pagination.hasPrevPage.value = paginationHistory.stack.length > 1
     } catch (e) {
-      console.warn('api did not work', apiList[apiCount])
+      console.warn('API request failed', apiList[apiCount])
 
       if (apiList[apiCount + 1]) {
         apiCount++
-        console.warn('switching to:', apiList[apiCount])
-        await fetchMedia(searchquery) // Retry with the next API
+        console.warn('Switching to:', apiList[apiCount])
+        await fetchMedia(searchquery)
       } else {
-        console.warn("no more api's available")
+        console.warn('No more APIs available')
         error.value = e instanceof Error ? e.message : 'Unknown error'
       }
     } finally {
@@ -106,35 +158,27 @@ export function useMedia(
   function buildQueryParams(apiConfig: any, searchquery: string, pageToken?: string) {
     const params = new URLSearchParams()
 
-    if (apiConfig.proxy_url) {
-      params.set('target_url', apiConfig.api_url)
-      params.set('api_source_key', apiConfig.api_source_key)
-    }
-
-    if (apiConfig.authorization_query_parameter) {
-      if (!apiConfig.proxy_url) {
-        params.set(apiConfig.authorization_query_parameter, apiConfig.api_key ?? '')
-      } else {
-        params.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
-      }
-    }
-
+    // 1. Add base query parameters from config (e.g., category, language)
     if (apiConfig.query_parameters) {
       for (const [key, value] of Object.entries(apiConfig.query_parameters)) {
         params.set(key, String(value))
       }
     }
 
+    // 2. Add the search term
     if (searchquery) {
       const queryKey = apiConfig.query_key || 'q'
       params.set(queryKey, searchquery)
     }
 
-    // Add pagination token if present
+    // 3. Handle Pagination
     if (pageToken && apiConfig.pagination_query_param !== '') {
       addPaginationParams(params, pageToken, apiConfig)
-    } else {
-      console.debug('No pagination query param defined for this news API, skipping token addition.')
+    }
+
+    // 4. Handle Auth for DIRECT calls only (non-proxy)
+    if (!apiConfig.proxy_url && apiConfig.authorization_query_parameter) {
+      params.set(apiConfig.authorization_query_parameter, apiConfig.api_key ?? '')
     }
 
     return params
@@ -152,15 +196,14 @@ export function useMedia(
   }
 
   async function handlePrevPage() {
-    paginationHistory.pop() // Remove current page token
-    const prevToken = paginationHistory.stack[paginationHistory.stack.length - 1] // Peek previous
+    paginationHistory.pop()
+    const prevToken = paginationHistory.stack[paginationHistory.stack.length - 1]
     await fetchMedia(lastSearchQuery, prevToken ?? undefined)
   }
 
-  // Call this on initial search to reset the stack
   async function search(searchquery: string) {
     paginationHistory.reset()
-    paginationHistory.push(null) // null = first page (no token)
+    paginationHistory.push(null)
     await fetchMedia(searchquery)
   }
 
@@ -177,4 +220,47 @@ export function useMedia(
     handleNextPage,
     handlePrevPage
   }
+}
+
+export const getAPIKeyForRequest = (sourceKey: string): string => {
+  if (typeof window === 'undefined') {
+    switch (sourceKey) {
+      case 'serp_api':
+        return process.env.VITE_API_KEY_SERP || ''
+      case 'newsdata':
+        return process.env.VITE_API_KEY_NEWSDATA || ''
+      case 'currents_api':
+        return process.env.VITE_API_KEY_CURRENTS || ''
+      default:
+        return ''
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const storedKeys = localStorage.getItem('delulu_api_keys')
+      if (storedKeys) {
+        const parsedKeys = JSON.parse(storedKeys)
+        switch (sourceKey) {
+          case 'serp_api':
+            return parsedKeys.SERP || ''
+          case 'newsdata':
+            return parsedKeys.NEWSDATA || ''
+          case 'currents_api':
+            return parsedKeys.CURRENTS || ''
+          default:
+            return ''
+        }
+      }
+    } catch (e) {
+      console.warn('Error parsing stored API keys:', e)
+    }
+  }
+
+  return (
+    process.env.VITE_API_KEY_SERP ||
+    process.env.VITE_API_KEY_NEWSDATA ||
+    process.env.VITE_API_KEY_CURRENTS ||
+    ''
+  )
 }

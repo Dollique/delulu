@@ -113,14 +113,14 @@ export default defineAppConfig({
         query_parameters: {
           engine: 'google_news_light'
         }
-      },
-      {
+      }
+      /*{
         api_source: 'CurrentsAPI',
         api_source_key: 'currents_api',
         api_url: 'https://api.currentsapi.services/v1/latest-news',
         api_key: process.env.VITE_API_KEY_CURRENTS,
         authorization_header: 'Authorization'
-      }
+      }*/
     ],
     videos: [
       {

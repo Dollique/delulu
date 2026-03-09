@@ -25,8 +25,11 @@ import MediaGrid from '~/components/MediaGrid.vue'
 import AppPagination from '~/components/AppPagination.vue'
 
 const { id, handleNextSource, returnRandomItem } = useMediaNavigation('news')
-const { media, error, fetchMedia, search, apiSource, pagination, handleNextPage, handlePrevPage } =
-  useMedia('news', id.value, mapNewsItems)
+const { media, error, search, apiSource, pagination, handleNextPage, handlePrevPage } = useMedia(
+  'news',
+  id.value,
+  mapNewsItems
+)
 const { hasNextPage, hasPrevPage, currentPage } = pagination
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']
