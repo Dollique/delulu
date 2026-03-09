@@ -16,9 +16,9 @@
 
   // Configuration - Replace these with your actual API keys
   const DEFAULT_API_KEYS = {
-    CURRENTS: 'YOUR_COUNTRY_S_API_KEY',
-    NEWSDATA: 'pub_1339a72e1a6d42beb5ec858951669c0d',
-    SERP: '91b7e049bc45a06eca149968afc0e8d8fa576b941c4f6762b813369915ba56ca'
+    CURRENTS: 'YOUR_API_KEY',
+    NEWSDATA: 'YOUR_API_KEY',
+    SERP: 'YOUR_API_KEY'
   }
 
   // Function to store API keys in browser storage
