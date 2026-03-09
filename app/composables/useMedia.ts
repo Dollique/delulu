@@ -33,6 +33,7 @@ export function useMedia(
   const apiSource = ref(apiList[id]?.api_source || '')
   const media = ref<MediaItem[]>([])
   const error = ref<string | null>(null)
+  const errorMessage = ref<string | null>(null)
   const pagination = usePagination<string>()
   const paginationHistory = usePaginationHistory()
   let lastSearchQuery = ''
@@ -148,6 +149,7 @@ export function useMedia(
       } else {
         console.warn('No more APIs available')
         error.value = e instanceof Error ? e.message : 'Unknown error'
+        errorMessage.value = `No API Keys found. Check <a href="/setup">setup</a> or instructions.`
       }
     } finally {
       apiSource.value = apiList[apiCount]?.api_source ?? 'unknown'
@@ -211,6 +213,7 @@ export function useMedia(
     media,
     loading,
     error,
+    errorMessage,
     fetchMedia,
     search,
     apiSource,
@@ -220,47 +223,4 @@ export function useMedia(
     handleNextPage,
     handlePrevPage
   }
-}
-
-export const getAPIKeyForRequest = (sourceKey: string): string => {
-  if (typeof window === 'undefined') {
-    switch (sourceKey) {
-      case 'serp_api':
-        return process.env.VITE_API_KEY_SERP || ''
-      case 'newsdata':
-        return process.env.VITE_API_KEY_NEWSDATA || ''
-      case 'currents_api':
-        return process.env.VITE_API_KEY_CURRENTS || ''
-      default:
-        return ''
-    }
-  }
-
-  if (typeof window !== 'undefined') {
-    try {
-      const storedKeys = localStorage.getItem('delulu_api_keys')
-      if (storedKeys) {
-        const parsedKeys = JSON.parse(storedKeys)
-        switch (sourceKey) {
-          case 'serp_api':
-            return parsedKeys.SERP || ''
-          case 'newsdata':
-            return parsedKeys.NEWSDATA || ''
-          case 'currents_api':
-            return parsedKeys.CURRENTS || ''
-          default:
-            return ''
-        }
-      }
-    } catch (e) {
-      console.warn('Error parsing stored API keys:', e)
-    }
-  }
-
-  return (
-    process.env.VITE_API_KEY_SERP ||
-    process.env.VITE_API_KEY_NEWSDATA ||
-    process.env.VITE_API_KEY_CURRENTS ||
-    ''
-  )
 }

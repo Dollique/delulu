@@ -2,15 +2,19 @@
   <div>
     <MediaHeader :source="apiSource" mediaType="Videos" @nextSource="handleNextSource" />
     <p>Videos are not yet filtered to only positive Videos... API is too expensive :(</p>
-    <SearchForm v-model="searchQuery" placeholder="anime, games..." @search="handleSearch" />
-    <MediaGrid :items="media" :error="error ?? undefined" mediaType="Videos" />
-    <AppPagination
-      :hasNextPage="hasNextPage"
-      :hasPrevPage="hasPrevPage"
-      :currentPage="currentPage"
-      @next="handleNextPage"
-      @prev="handlePrevPage"
-    />
+
+    <p v-if="errorMessage" class="error" v-html="errorMessage"></p>
+    <section v-else>
+      <SearchForm v-model="searchQuery" placeholder="anime, games..." @search="handleSearch" />
+      <MediaGrid :items="media" :error="error ?? undefined" mediaType="Videos" />
+      <AppPagination
+        :hasNextPage="hasNextPage"
+        :hasPrevPage="hasPrevPage"
+        :currentPage="currentPage"
+        @next="handleNextPage"
+        @prev="handlePrevPage"
+      />
+    </section>
   </div>
 </template>
 
@@ -25,11 +29,16 @@ import MediaGrid from '~/components/MediaGrid.vue'
 import AppPagination from '~/components/AppPagination.vue'
 
 const { id, handleNextSource, returnRandomItem } = useMediaNavigation('videos')
-const { media, error, search, apiSource, pagination, handleNextPage, handlePrevPage } = useMedia(
-  'videos',
-  id.value,
-  mapVideoItems
-)
+const {
+  media,
+  error,
+  errorMessage,
+  search,
+  apiSource,
+  pagination,
+  handleNextPage,
+  handlePrevPage
+} = useMedia('videos', id.value, mapVideoItems)
 const { hasNextPage, hasPrevPage, currentPage } = pagination
 
 const defaultSearchTopics = ['anime', 'steam', 'japan', 'manga', 'games']

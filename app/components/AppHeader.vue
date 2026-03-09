@@ -2,7 +2,8 @@
   <header>
     <section class="header__right">
       <h1>Delulu</h1>
-      <a href="#" class="header__filters" @click="handleClickFilters">Filters</a>
+      <a v-if="!hasApiKeys" href="/setup" class="header__setup">Setup</a>
+      <a v-else href="#" class="header__filters" @click="handleClickFilters">Filters</a>
     </section>
     <AppNav />
 
@@ -20,6 +21,7 @@ import { ref } from 'vue'
 import MediaFilters from './MediaFilters.vue'
 
 const showFilters = ref(false)
+const hasApiKeys = ref(false)
 
 const handleClickFilters = (e: Event) => {
   e.preventDefault()
@@ -29,6 +31,11 @@ const handleClickFilters = (e: Event) => {
 const handleCloseFilters = () => {
   showFilters.value = false
 }
+
+onMounted(() => {
+  const appConfig = useAppConfig()
+  hasApiKeys.value = checkForApiKeys(appConfig.apiLists)
+})
 </script>
 
 <style scoped>
@@ -57,19 +64,25 @@ header {
   align-items: center;
 }
 
-.header__filters {
+.header__filters,
+.header__setup {
   background: var(--color-gray-light);
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
 }
 .header__filters,
-.header__filters:active .header__filters:focus {
+.header__setup,
+.header__filters:active,
+.header__filters:focus,
+.header__setup:active,
+.header__setup:focus {
   color: #fff;
   text-decoration: none;
 }
 
-.header__filters:hover {
+.header__filters:hover,
+.header__setup:hover {
   background: var(--color-primary);
   color: black;
 }
