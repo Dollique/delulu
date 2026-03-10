@@ -31,3 +31,8 @@ body {
   text-decoration: underline;
   font-weight: bold;
 }
+
+.flex {
+  display: flex;
+  flex-direction: column;
+}

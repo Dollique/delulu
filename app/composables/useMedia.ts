@@ -149,7 +149,7 @@ export function useMedia(
       } else {
         console.warn('No more APIs available')
         error.value = e instanceof Error ? e.message : 'Unknown error'
-        errorMessage.value = `No API Keys found. Check <a href="/setup">setup</a> or instructions.`
+        errorMessage.value = `No valid API Keys found. Check <a href="/setup">setup</a> or instructions.`
       }
     } finally {
       apiSource.value = apiList[apiCount]?.api_source ?? 'unknown'

@@ -31,28 +31,9 @@ const onPrev = () => {
   gap: 1.5rem;
   padding: 1rem 0;
 }
+
 .page-indicator {
   font-weight: bold;
   font-size: 1.1rem;
-}
-button {
-  background-color: var(--color-positive);
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-}
-button:disabled {
-  background-color: #e0e0e0;
-  cursor: not-allowed;
-}
-.debug-info {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: #888;
-}
-pre {
-  margin: 0;
 }
 </style>

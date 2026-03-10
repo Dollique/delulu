@@ -51,12 +51,12 @@ export const checkForApiKeys = (apiLists: ApiLists): boolean => {
 
   for (const apiConfig of allApiConfigs) {
     const apiKey = getAPIKeyForRequest(apiConfig.api_source_key)
-    if (apiKey && apiKey.trim() !== '') {
+    if (apiKey && apiKey.trim() !== '' && apiKey.trim() !== 'YOUR_API_KEY') {
       console.log(`Found API key for source "${apiConfig.api_source_key}":`, apiKey)
       return true
     }
   }
 
-  console.warn('No API keys found for any sources.')
+  console.warn('No valid API keys found for any sources.')
   return false
 }

@@ -1,15 +1,18 @@
 <template>
   <form class="search-form" @submit.prevent="onSearch">
     <label for="searchquery">Search</label>
-    <input
-      id="searchquery"
-      v-model="localQuery"
-      type="text"
-      name="searchquery"
-      :placeholder="placeholder"
-      @input="updateQuery"
-    />
-    <button type="submit" class="search-form__search-btn">Search</button>
+    <div class="form-row">
+      <input
+        id="searchquery"
+        v-model="localQuery"
+        type="text"
+        name="searchquery"
+        :placeholder="placeholder"
+        @input="updateQuery"
+        class="search-form__input form-input"
+      />
+      <button type="submit" class="search-form__search-btn">Search</button>
+    </div>
   </form>
 </template>
 

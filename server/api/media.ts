@@ -55,6 +55,10 @@ export default defineEventHandler(async (event) => {
     const apiKey =
       getApiKeyFromHeaders(event, body.api_source_key) ?? apiKeysBySource[body.api_source_key]
 
+    if (!apiKey) {
+      throwError(400, `No API key configured for source "${body.api_source_key}"`)
+    }
+
     // Build the target URL with query parameters
     const url = new URL(body.target_url)
     if (body.query_params) {
@@ -70,7 +74,10 @@ export default defineEventHandler(async (event) => {
 
     // Make the actual API request
     const response = await fetch(url.toString())
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    if (!response.ok) {
+      const text = await response.text()
+      throwError(response.status, text || response.statusText)
+    }
     return await response.json()
   }
   // Handle GET requests (using your previous working logic)

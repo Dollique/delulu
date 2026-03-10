@@ -7,6 +7,14 @@
       Sadly, for the moment I have not found a free or cheap api where I can filter for good news...
     </p>
 
+    <div v-if="!hasApiKeys">
+      <h2>Setup</h2>
+      <p>You need to set up your own API Keys to get started.</p>
+      <div class="flex">
+        <nuxtLink to="/setup" class="button cta">Setup</nuxtLink>
+      </div>
+    </div>
+
     <h2>Scoring System</h2>
     <p>
       The title and description of each news is analyzed and a score is given to it. It is a simple
@@ -43,6 +51,15 @@
   </section>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { ref } from 'vue'
+
+const hasApiKeys = ref(false)
+
+onMounted(() => {
+  const appConfig = useAppConfig()
+  hasApiKeys.value = checkForApiKeys(appConfig.apiLists)
+})
+</script>
 
 <style></style>
