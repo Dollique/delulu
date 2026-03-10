@@ -40,12 +40,13 @@
     <ul>
       <li>
         1. Install the API key injector browser extension from the
-        <a href="/api-key-injector-browser-extensions/" target="_blank"
+        <a href="https://github.com/Dollique/delulu-api-key-extension" target="_blank"
           >API key injector browser extensions page</a
         >.
       </li>
-      <li>2. Open the extension and add your API keys.</li>
-      <li>3. Refresh the page where you want to use the API key injector.</li>
+      <li>2. Install the extension in your browser.</li>
+      <li>3. Open the extension and add your API keys.</li>
+      <li>4. Refresh the page where you want to use the API key injector.</li>
     </ul>
   </section>
 </template>
