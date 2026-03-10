@@ -1,0 +1,3 @@
+[submodule "browser_extension_api_key_extension"]
+	path = browser_extension_api_key_extension
+	url = git@github.com:Dollique/delulu-api-key-extension.git
