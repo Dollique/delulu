@@ -14,6 +14,26 @@
 ;(function () {
   'use strict'
 
+  // Only run on these domains (hostname + optional port).
+  const allowedDomains = [
+    { hostname: 'localhost', port: '3000' }
+    // { hostname: 'example.com' }
+  ]
+
+  function isAllowedDomain(loc = window.location) {
+    const hostname = (loc.hostname || '').toLowerCase()
+    const port = (loc.port || '').toLowerCase() // empty string for default ports
+
+    return allowedDomains.some((rule) => {
+      const ruleHost = (rule.hostname || '').toLowerCase()
+      const rulePort = rule.port == null ? null : String(rule.port).toLowerCase()
+
+      if (!ruleHost || hostname !== ruleHost) return false
+      // If rule specifies a port, it must match exactly.
+      return rulePort === null || rulePort === port
+    })
+  }
+
   // Configuration - Replace these with your actual API keys
   const DEFAULT_API_KEYS = {
     CURRENTS: 'YOUR_API_KEY',
@@ -47,6 +67,11 @@
 
   // Function to inject API keys into the page
   function injectAPIKeys() {
+    // Never inject or touch localStorage unless we're on an allowed domain.
+    if (!isAllowedDomain()) {
+      return
+    }
+
     const apiKeys = getStoredAPIKeys()
 
     if (!apiKeys) {
