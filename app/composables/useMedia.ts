@@ -50,7 +50,7 @@ export function useMedia(
     try {
       const apiConfig = apiList[apiCount]!
       const apiURL = apiConfig.proxy_url ? apiConfig.proxy_url : apiConfig.api_url
-      const apiKey = getAPIKeyForRequest(apiConfig.api_source_key)
+      const apiKey = getAPIKeyForRequest(apiConfig.api_key_query_param)
 
       // Build query params (including all query_parameters from apiConfig)
       const params = buildQueryParams(apiConfig, searchquery, pageToken)
@@ -63,16 +63,22 @@ export function useMedia(
           const requestBody = {
             // These are explicitly pulled from apiConfig, NOT the params object
             target_url: apiConfig.api_url,
-            api_source_key: apiConfig.api_source_key,
+            api_key_query_param: apiConfig.api_key_query_param,
             authorization_query_parameter: apiConfig.authorization_query_parameter,
 
             // params now ONLY contains external API fields (q, language, etc.)
             query_params: Object.fromEntries(params.entries())
           }
 
-          const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey
+          let headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+          }
+
+          if (apiKey) {
+            headers = {
+              ...headers, // Spread the existing headers
+              'x-api-key': apiKey // Add the x-api-key header
+            }
           }
 
           response = await fetch(apiURL, {
@@ -85,7 +91,7 @@ export function useMedia(
           // to the URL so the backend can read them via getQuery(event)
           const proxyParams = new URLSearchParams(params) // Clone the original params
           proxyParams.set('target_url', apiConfig.api_url)
-          proxyParams.set('api_source_key', apiConfig.api_source_key)
+          proxyParams.set('api_key_query_param', apiConfig.api_key_query_param)
           proxyParams.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
 
           const fullURL = `${apiURL}?${proxyParams.toString()}`

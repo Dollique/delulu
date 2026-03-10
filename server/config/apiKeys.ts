@@ -1,5 +1,5 @@
 /**
- * Mapping of `api_source_key` identifiers to the API key that must be used
+ * Mapping of `api_key_query_param` identifiers to the API key that must be used
  * when that source is requested.
  *
  * Example:

@@ -1,101 +1,57 @@
 // ==UserScript==
-// @name         Delulu - API Key Injector
+// @name         Delulu - Secure API Key Injector
 // @namespace    http://localhost:3000/
-// @version      0.1
-// @description  Inject your API keys for the Delulu application
-// @author       You
-// @match        *://*/*
+// @version      0.3
+// @match        *://localhost:3000/*
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @grant        GM_deleteValue
-// @grant        GM_listValues
 // ==/UserScript==
 
 ;(function () {
   'use strict'
 
-  // Only run on these domains (hostname + optional port).
-  const allowedDomains = [
-    { hostname: 'localhost', port: '3000' }
-    // { hostname: 'example.com' }
-  ]
+  function getOrStoreAPIKeys() {
+    let stored = GM_getValue('delulu_api_keys', null)
+    let apiKeys = null
 
-  function isAllowedDomain(loc = window.location) {
-    const hostname = (loc.hostname || '').toLowerCase()
-    const port = (loc.port || '').toLowerCase() // empty string for default ports
-
-    return allowedDomains.some((rule) => {
-      const ruleHost = (rule.hostname || '').toLowerCase()
-      const rulePort = rule.port == null ? null : String(rule.port).toLowerCase()
-
-      if (!ruleHost || hostname !== ruleHost) return false
-      // If rule specifies a port, it must match exactly.
-      return rulePort === null || rulePort === port
-    })
-  }
-
-  // Configuration - Replace these with your actual API keys
-  const DEFAULT_API_KEYS = {
-    CURRENTS: 'YOUR_API_KEY',
-    NEWSDATA: 'YOUR_API_KEY',
-    SERP: 'YOUR_API_KEY'
-  }
-
-  // Function to store API keys in browser storage
-  function storeAPIKeys() {
-    const apiKeys = {
-      CURRENTS: prompt('Enter your Currents API Key:', DEFAULT_API_KEYS.CURRENTS),
-      NEWSDATA: prompt('Enter your NewsData API Key:', DEFAULT_API_KEYS.NEWSDATA),
-      SERP: prompt('Enter your SerpAPI Key:', DEFAULT_API_KEYS.SERP)
+    try {
+      apiKeys = stored ? JSON.parse(stored) : null
+    } catch (e) {
+      apiKeys = null
     }
 
-    // Store keys in browser storage
-    GM_setValue('delulu_api_keys', JSON.stringify(apiKeys))
-
-    console.log('API keys stored successfully')
+    // Trigger prompt if keys are missing or the object is empty
+    if (!apiKeys || Object.keys(apiKeys).length === 0) {
+      apiKeys = {
+        CURRENTS: prompt('Enter your Currents API Key:'),
+        NEWSDATA: prompt('Enter your NewsData API Key:'),
+        SERP: prompt('Enter your SerpAPI Key:')
+      }
+      GM_setValue('delulu_api_keys', JSON.stringify(apiKeys))
+    }
     return apiKeys
   }
 
-  // Function to get API keys from browser storage
-  function getStoredAPIKeys() {
-    const stored = GM_getValue('delulu_api_keys', null)
-    if (stored) {
-      return JSON.parse(stored)
-    }
-    return null
-  }
+  // Initialize keys immediately
+  const keys = getOrStoreAPIKeys()
 
-  // Function to inject API keys into the page
-  function injectAPIKeys() {
-    // Never inject or touch localStorage unless we're on an allowed domain.
-    if (!isAllowedDomain()) {
-      return
-    }
+  // Override fetch
+  const originalFetch = window.fetch
+  window.fetch = async function (input, init = {}) {
+    // Determine the URL regardless of if 'input' is a string or Request object
+    const url = typeof input === 'string' ? input : input.url
 
-    const apiKeys = getStoredAPIKeys()
+    // Clone headers or start fresh
+    const headers = new Headers(init.headers || {})
 
-    if (!apiKeys) {
-      console.log('No stored API keys found. Storing default keys...')
-      storeAPIKeys()
-      return
+    if (url.includes('currentsapi')) {
+      headers.set('x-api-key', keys.CURRENTS)
+    } else if (url.includes('newsdata')) {
+      headers.set('x-api-key', keys.NEWSDATA)
+    } else if (url.includes('serpapi')) {
+      headers.set('x-api-key', keys.SERP)
     }
 
-    // Inject keys into window object for your app to access
-    window.deluluApiKeys = apiKeys
-
-    console.log('API keys injected:', apiKeys)
-
-    // Also store in localStorage for persistence across page refreshes
-    localStorage.setItem('delulu_api_keys', JSON.stringify(apiKeys))
+    return originalFetch.call(this, input, { ...init, headers })
   }
-
-  // Run when page loads
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectAPIKeys)
-  } else {
-    injectAPIKeys()
-  }
-
-  // Also run on page load for SPA applications
-  window.addEventListener('load', injectAPIKeys)
 })()

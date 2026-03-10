@@ -48,15 +48,16 @@ export default defineEventHandler(async (event) => {
 
     // Validate required fields
     if (!body.target_url) throwError(400, 'Missing required field `target_url`')
-    if (!body.api_source_key) throwError(400, 'Missing required field `api_source_key`')
+    if (!body.api_key_query_param) throwError(400, 'Missing required field `api_key_query_param`')
     if (!body.authorization_query_parameter)
       throwError(400, 'Missing required field `authorization_query_parameter`')
 
     const apiKey =
-      getApiKeyFromHeaders(event, body.api_source_key) ?? apiKeysBySource[body.api_source_key]
+      getApiKeyFromHeaders(event, body.api_key_query_param) ??
+      apiKeysBySource[body.api_key_query_param]
 
     if (!apiKey) {
-      throwError(400, `No API key configured for source "${body.api_source_key}"`)
+      throwError(400, `No API key configured for source "${body.api_key_query_param}"`)
     }
 
     // Build the target URL with query parameters
@@ -86,7 +87,11 @@ export default defineEventHandler(async (event) => {
 
     // Validate required query parameters
     validateQueryParam(query, 'target_url', 'Missing required query param `target_url`')
-    validateQueryParam(query, 'api_source_key', 'Missing required query param `api_source_key`')
+    validateQueryParam(
+      query,
+      'api_key_query_param',
+      'Missing required query param `api_key_query_param`'
+    )
     validateQueryParam(
       query,
       'authorization_query_parameter',
@@ -94,7 +99,7 @@ export default defineEventHandler(async (event) => {
     )
 
     // Validate API key for the source
-    const sourceKey = query.api_source_key as string
+    const sourceKey = query.api_key_query_param as string
     const apiKey = getApiKeyFromHeaders(event, sourceKey) ?? apiKeysBySource[sourceKey]
 
     if (!apiKey) {
@@ -106,7 +111,7 @@ export default defineEventHandler(async (event) => {
     // Build the full target URL, excluding internal params
     const params = new URLSearchParams(
       Object.entries(query).filter(
-        ([k]) => !['target_url', 'api_source_key', 'authorization_query_parameter'].includes(k)
+        ([k]) => !['target_url', 'api_key_query_param', 'authorization_query_parameter'].includes(k)
       )
     )
 

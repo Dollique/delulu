@@ -88,7 +88,7 @@ export default defineAppConfig({
     news: [
       {
         api_source: 'NewsData.io',
-        api_source_key: 'newsdata',
+        api_key_query_param: 'newsdata',
         api_url: 'https://newsdata.io/api/1/latest',
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_NEWSDATA,
@@ -103,7 +103,7 @@ export default defineAppConfig({
       },
       {
         api_source: 'SerpAPI',
-        api_source_key: 'serp_api',
+        api_key_query_param: 'serp_api',
         api_url: 'https://serpapi.com/search',
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_SERP,
@@ -116,7 +116,7 @@ export default defineAppConfig({
       }
       /*{
         api_source: 'CurrentsAPI',
-        api_source_key: 'currents_api',
+        api_key_query_param: 'currents_api',
         api_url: 'https://api.currentsapi.services/v1/latest-news',
         api_key: process.env.VITE_API_KEY_CURRENTS,
         authorization_header: 'Authorization'
@@ -125,7 +125,7 @@ export default defineAppConfig({
     videos: [
       {
         api_source: 'SerpAPI',
-        api_source_key: 'serp_api',
+        api_key_query_param: 'serp_api',
         api_url: 'https://serpapi.com/search',
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_SERP,
@@ -138,7 +138,7 @@ export default defineAppConfig({
       }
       /*{
         api_source: 'YouTube Data API',
-        api_source_key: 'youtube',
+        api_key_query_param: 'youtube',
         api_url: 'https://www.googleapis.com/youtube/v3/search',
         proxy_url: '/api/media',
         api_key: process.env.VITE_API_KEY_YOUTUBE,
