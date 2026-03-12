@@ -9,6 +9,7 @@ import {
   getPaginationTokensNewsData
 } from './usePagination'
 import { usePaginationHistory } from './usePaginationHistory'
+import { fetchFromBackend, sendFetch } from '~/composables/useFetch'
 
 export interface MediaItem {
   title: string
@@ -57,7 +58,15 @@ export function useMedia(
 
       let response
 
+      const headers: Record<string, string> = {}
+      if ('authorization_header' in apiConfig && apiConfig.authorization_header && apiKey) {
+        headers[apiConfig.authorization_header] = apiKey
+      }
+
       if (apiConfig.proxy_url) {
+        // define request headers
+        headers['x-api-key'] = apiKey
+
         if (REQUEST_METHOD === 'POST') {
           // For POST proxy requests
           const requestBody = {
@@ -70,22 +79,7 @@ export function useMedia(
             query_params: Object.fromEntries(params.entries())
           }
 
-          let headers: Record<string, string> = {
-            'Content-Type': 'application/json'
-          }
-
-          if (apiKey) {
-            headers = {
-              ...headers, // Spread the existing headers
-              'x-api-key': apiKey // Add the x-api-key header
-            }
-          }
-
-          response = await fetch(apiURL, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(requestBody)
-          })
+          response = await sendFetch(apiURL, 'POST', requestBody, headers)
         } else {
           // For GET proxy requests, we do need to add the internal keys
           // to the URL so the backend can read them via getQuery(event)
@@ -94,34 +88,11 @@ export function useMedia(
           proxyParams.set('api_key_query_param', apiConfig.api_key_query_param)
           proxyParams.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
 
-          const fullURL = `${apiURL}?${proxyParams.toString()}`
-          const headers: Record<string, string> = {}
-
-          // Set authorization header if present
-          if ('authorization_header' in apiConfig && apiConfig.authorization_header && apiKey) {
-            headers[apiConfig.authorization_header] = apiKey
-          }
-
-          headers['Content-Type'] = 'application/json'
-          headers['x-api-key'] = apiKey
-
-          response = await fetch(fullURL, {
-            method: 'GET',
-            headers
-          })
+          response = await sendFetch(apiURL, 'GET', proxyParams, headers)
         }
       } else {
-        // For direct API calls
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json'
-        }
-
-        if (apiConfig.authorization_header && apiKey) {
-          headers[apiConfig.authorization_header] = apiKey
-        }
-
-        const fullURL = `${apiURL}?${params.toString()}`
-        response = await fetch(fullURL, { headers })
+        // For direct API calls (no proxy)
+        response = await sendFetch(apiURL, 'GET', params, headers)
       }
 
       if (!response.ok) {
