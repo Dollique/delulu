@@ -9,7 +9,7 @@ import {
   getPaginationTokensNewsData
 } from './usePagination'
 import { usePaginationHistory } from './usePaginationHistory'
-import { fetchFromBackend, sendFetch } from '~/composables/useFetch'
+import { sendFetch } from '~/composables/useFetch'
 
 export interface MediaItem {
   title: string
@@ -51,7 +51,7 @@ export function useMedia(
     try {
       const apiConfig = apiList[apiCount]!
       const apiURL = apiConfig.proxy_url ? apiConfig.proxy_url : apiConfig.api_url
-      const apiKey = getAPIKeyForRequest(apiConfig.api_key_query_param)
+      const apiKey = await getAPIKey(apiConfig.api_key, apiConfig.api_key_query_param)
 
       // Build query params (including all query_parameters from apiConfig)
       const params = buildQueryParams(apiConfig, searchquery, pageToken)
@@ -65,34 +65,32 @@ export function useMedia(
 
       if (apiConfig.proxy_url) {
         // define request headers
-        headers['x-api-key'] = apiKey
-
-        if (REQUEST_METHOD === 'POST') {
-          // For POST proxy requests
-          const requestBody = {
-            // These are explicitly pulled from apiConfig, NOT the params object
-            target_url: apiConfig.api_url,
-            api_key_query_param: apiConfig.api_key_query_param,
-            authorization_query_parameter: apiConfig.authorization_query_parameter,
-
-            // params now ONLY contains external API fields (q, language, etc.)
-            query_params: Object.fromEntries(params.entries())
-          }
-
-          response = await sendFetch(apiURL, 'POST', requestBody, headers)
-        } else {
-          // For GET proxy requests, we do need to add the internal keys
-          // to the URL so the backend can read them via getQuery(event)
-          const proxyParams = new URLSearchParams(params) // Clone the original params
-          proxyParams.set('target_url', apiConfig.api_url)
-          proxyParams.set('api_key_query_param', apiConfig.api_key_query_param)
-          proxyParams.set('authorization_query_parameter', apiConfig.authorization_query_parameter)
-
-          response = await sendFetch(apiURL, 'GET', proxyParams, headers)
+        if (apiKey) {
+          headers['x-api-key'] = apiKey
         }
+
+        const requestObject = {
+          // These are explicitly pulled from apiConfig, NOT the params object
+          target_url: apiConfig.api_url,
+          api_key_query_param: apiConfig.api_key_query_param,
+          authorization_query_parameter: apiConfig.authorization_query_parameter,
+          // params now ONLY contains external API fields (q, language, etc.)
+          query_params: Object.fromEntries(params.entries())
+        }
+
+        response = await sendFetch(apiURL, REQUEST_METHOD, requestObject, headers)
       } else {
         // For direct API calls (no proxy)
-        response = await sendFetch(apiURL, 'GET', params, headers)
+
+        const requestProxyObject = Object.fromEntries(params.entries())
+
+        if (apiKey) {
+          requestProxyObject['apikey'] = apiKey
+        }
+
+        console.log('REQ object', requestProxyObject)
+
+        response = await sendFetch(apiURL, 'GET', requestProxyObject, headers)
       }
 
       if (!response.ok) {
