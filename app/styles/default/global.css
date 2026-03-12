@@ -1,0 +1,38 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#__nuxt {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.error {
+  text-align: center;
+  color: white;
+  background-color: darkred;
+  margin: 1rem 0;
+  padding: 30px 20px;
+  border-radius: 5px;
+}
+
+.error a {
+  color: white;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.flex {
+  display: flex;
+  flex-direction: column;
+}
