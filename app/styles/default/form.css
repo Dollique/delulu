@@ -1,0 +1,10 @@
+.form-row {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+}
+
+input,
+.form-input {
+    padding: 0.5rem 1rem;
+}

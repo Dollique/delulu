@@ -1,0 +1,29 @@
+/* button styles */
+
+button,
+.button {
+    background-color: var(--color-positive);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+}
+
+button:hover,
+.button:hover {
+    background-color: var(--color-positive-light);
+}
+
+button:disabled,
+.button:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+.cta {
+    display: block;
+    font-weight: bold;
+    margin: 10px auto;
+}
